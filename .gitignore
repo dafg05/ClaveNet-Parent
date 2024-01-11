@@ -1,0 +1,10 @@
+.DS_Store
+.vscode
+pipelineVenv
+learning/*
+midiUtils/*
+out
+processing/*
+rawData/*
+
+test0.mid

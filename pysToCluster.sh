@@ -1,0 +1,1 @@
+scp -r learning/*.py dfloresgarcia24@hpc.amherst.edu:/home/dfloresgarcia24/learning
