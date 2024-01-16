@@ -7,3 +7,9 @@ Subrepos:
 * processing - [Link](https://github.com/dafg05/processing)
 * learning — [Link](https://github.com/dafg05/learning)
 * midiUtils — [Link](https://github.com/dafg05/midiUtils)
+
+## Setup
+
+```
+pip install git+https://github.com/dafg05/hvo_sequence
+```
