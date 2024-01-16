@@ -3,8 +3,9 @@
 pipelineVenv
 learning/*
 midiUtils/*
+hvo_processing/*
 out
-processing/*
-rawData/*
 
-test0.mid
+rawData/*
+evaluation/*
+midiUtils/*

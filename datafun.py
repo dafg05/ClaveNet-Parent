@@ -4,20 +4,20 @@ import shutil
 
 LEARNING_DIR = "learning"
 MIDI_UTILS_DIR = "midiUtils"
-PROCESSING_DIR = "processing"
+HVO_PROCESSING_DIR = "hvo_processing"
 RAW_DATA_DIR = "rawData"
 TEST_DATA_DIR = "testData"
 FULL_LEARNING_INPUT_DIR = LEARNING_DIR + "/processedData"
 TEST_LEARNING_INPUT_DIR = LEARNING_DIR + "/testData"
-PROCESSING_INPUT_DIR = PROCESSING_DIR + "/split"
+PROCESSING_INPUT_DIR = HVO_PROCESSING_DIR + "/split"
 MIDI_UTILS_OUTPUT_DIR = MIDI_UTILS_DIR + "/midi/split"
-PARTITION_DIR = PROCESSING_DIR + "/partitioned"
-PROCESSING_OUTPUT_DIR = PROCESSING_DIR + "/processed"
+PARTITION_DIR = HVO_PROCESSING_DIR + "/partitioned"
+PROCESSING_OUTPUT_DIR = HVO_PROCESSING_DIR + "/processed"
 
 sys.path.append(f"{sys.path[0]}/{MIDI_UTILS_DIR}")
-sys.path.append(f"{sys.path[0]}/{PROCESSING_DIR}")
+sys.path.append(f"{sys.path[0]}/{HVO_PROCESSING_DIR}")
 
-from processing import main as mp
+from hvo_processing import main as mp
 from midiUtils import main as mu
 
 def pipeline(isTest):
@@ -34,12 +34,21 @@ def pipeline(isTest):
     dataDir = TEST_DATA_DIR if isTest else RAW_DATA_DIR
     learning_input_dir = TEST_LEARNING_INPUT_DIR if isTest else FULL_LEARNING_INPUT_DIR
 
+    if len(os.listdir(PROCESSING_INPUT_DIR)) > 0:
+        raise Exception(f"Processing input directory {PROCESSING_INPUT_DIR} is not empty. Please clear it before moving.")
+    if len(os.listdir(learning_input_dir)) > 0:
+        # raise Exception(f"Learning input directory {learning_input_dir} is not empty. Please clear it before moving.")
+        x = input(f"ATTENTION: Pipeline will erase the contents in {learning_input_dir}. Continue? Y/n:")
+        if x != "Y":
+            print("Aborting pipeline...")
+            sys.exit(1)
+        else:
+            print("Continuing pipeline...")
+
     # split raw data into two bar segments
     mu.splitMidi(dataDir, MIDI_UTILS_OUTPUT_DIR)
 
     # move split data to preprocess dir
-    if len(os.listdir(PROCESSING_INPUT_DIR)) > 0:
-        raise Exception(f"Processing input directory {PROCESSING_INPUT_DIR} is not empty. Please clear it before moving.")
     filesMoved = 0
     for f in os.listdir(MIDI_UTILS_OUTPUT_DIR):
         if f.endswith(".mid"):
@@ -51,9 +60,7 @@ def pipeline(isTest):
     print("----------------------------------")
 
     # preprocess collection of data. 
-    mp.process(PROCESSING_INPUT_DIR, PROCESSING_OUTPUT_DIR, PARTITION_DIR) 
-    if len(os.listdir(learning_input_dir)) > 0:
-        raise Exception(f"Learning input directory {learning_input_dir} is not empty. Please clear it before moving.")
+    mp.process(PROCESSING_INPUT_DIR, PROCESSING_OUTPUT_DIR, PARTITION_DIR)
     filesMoved = 0
 
     # move processed data to learning dir
@@ -97,7 +104,7 @@ def clear():
             filesDeleted += 1
     print(f"removed {filesDeleted} files and {dirsDeleted} directories from {PROCESSING_INPUT_DIR}")
 
-    # clear processing module output
+    # clear hvo_processing module output
     filesDeleted = 0
     for f in os.listdir(PROCESSING_OUTPUT_DIR):
         os.remove(PROCESSING_OUTPUT_DIR + '/' + f)
