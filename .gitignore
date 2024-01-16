@@ -1,10 +1,9 @@
 .DS_Store
 .vscode
 pipelineVenv
-learning/*
-midiUtils/*
-hvo_processing/*
-out
+learning
+midiUtils
+hvo_processing
 
 rawData/*
 evaluation/*
