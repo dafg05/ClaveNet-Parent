@@ -79,10 +79,10 @@ def pipeline(isTest, aug=False):
 
         styleParams = {"preferredStyle": dataAugParams["preferredStyle"], "outOfStyleProb": dataAugParams["outOfStyleProb"]}
         # trasform whole data using data augmentation scheme, writing to data aug output dir
-        dataAug.augmentationScheme(sourceDir=MIDI_SPLIT_DIR, outputDir=AUG_OUTPUT_DIR, examplesDir=EXAMPLES_DIR, styleParams=styleParams, numTranformations=dataAugParams["numTranformations"], numReplacements=dataAugParams["numReplacements"], fixedPartsToReplace=dataAugParams["fixedPartsToReplace"], seed=dataAugParams["seed"],debug=False)
+        dataAug.augmentationScheme(sourceDir=MIDI_SPLIT_DIR, outputDir=AUG_OUTPUT_DIR, examplesDir=EXAMPLES_DIR, styleParams=styleParams, numTransformations=dataAugParams["numTransformations"], numReplacements=dataAugParams["numReplacements"], fixedPartsToReplace=dataAugParams["fixedPartsToReplace"], seed=dataAugParams["seed"],debug=False)
 
         print("----------------------------------")
-        print(f"Data augmentation with {dataAugParams['numTranformations']} transformations per file done.")
+        print(f"Data augmentation with {dataAugParams['numTransformations']} transformations per file done.")
         print("----------------------------------")
 
     else:
