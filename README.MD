@@ -1,15 +1,2 @@
-# drum_gen
-
-A parent project for various drum-generation tools. 
-
-Subrepos:
-
-* processing - [Link](https://github.com/dafg05/processing)
-* learning — [Link](https://github.com/dafg05/learning)
-* midiUtils — [Link](https://github.com/dafg05/midiUtils)
-
-## Setup
-
-```
-pip install git+https://github.com/dafg05/hvo_sequence
-```
+# drum_gen_storage
+This repository serves as an old drawer for my drum generation project. Contains scripts for moving data around (both on local as well as between local and remote) as well as now unused data.

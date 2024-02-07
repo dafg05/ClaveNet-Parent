@@ -4,15 +4,4 @@
 venv
 
 learning
-midiUtils
-hvo_processing
-chop
-GMD2HVO_PreProcessing
-
-rawData/*
-evaluation/*
-
-testOut/audio/*
-testOut/midi/*
-
-resources
+preprocessing

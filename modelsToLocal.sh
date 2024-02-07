@@ -1,0 +1,1 @@
+scp  -r dfloresgarcia24@hpc.amherst.edu:/home/dfloresgarcia24/learning/models/* learning/models
