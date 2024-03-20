@@ -53,4 +53,9 @@ def batch_preprocess_datasets():
         combinations = combinations[0:2]
 
     for data_aug_params in tqdm(combinations, desc="Batch preprocessing datasets"):
+        print(f"Current param combination: {data_aug_params}")
         pre.preprocess(PREPROCESSING_OUT_DIR, data_aug_params)
+
+
+if __name__ == "__main__":
+    batch_preprocess_datasets()
