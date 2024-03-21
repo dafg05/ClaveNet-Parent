@@ -1,33 +1,71 @@
 import os
-import pathlib
+import shutil
+import subprocess
+from pathlib import Path
+from datetime import datetime
 from tqdm import tqdm
+
 from preprocessing import preprocessing as pre
 
-SOURCE_DIR = 'preprocessing/preprocessedDatasets'
-DESTINATION_DIR = 'learning/preprocessedDatasets'
-PREPROCESSING_OUT_DIR = 'pre_out'
+DATA_TO_CLUSTER_SCRIPT = './dataToCluster.sh'
+RUNS_DIR = 'runs'
+PREPROCESSING_OUT = 'pre_out'
+ERROR_LOGS = 'run_errors.log'
+PREPROCESSED_KEYWORD = 'PreProcessed'
 
-NUM_TRANSFORMATION_VALUES = [1, 2, 3]
+NUM_TRANSFORMATION_VALUES = [1]
 NUM_REPLACEMENT_VALUES = [1, 2, 4]
 OUT_OF_STYLE_PROB_VALUES = [0.0, 0.5, 1.0]
 
-TEST = True
+TEST_TRANSFORMATION_VALUES = [1]
+TEST_REPLACEMENT_VALUES = [1,2]
+TEST_OUT_OF_STYLE_PROB_VALUES = [0.5]
 
-def copy_preprocessed_datasets(source_dir, destination_dir):
-    """
-    Copy the preprocessed datasets from the source_dir to the destination_dir. Don't overwrite existing datasets in the destination dir.
-    TODO: test me
-    """
-    source_dir = pathlib.Path(source_dir)
-    destination_dir = pathlib.Path(destination_dir)
-    for file in source_dir.iterdir():
-        # note that the data sets are folders.
-        if file.is_dir():
-            if not (destination_dir / file.name).exists():
-                print(f'Copying {file.name} to {destination_dir}...')
-                os.system(f'cp -r {file} {destination_dir}')
-            else:
-                print(f'{file.name} already exists in the destination directory. Skipping...')
+def pre_processing_pipeline(test=True):
+    # name each run with a timestamp
+    time_str = str(int(datetime.now().timestamp()))
+    run_path = Path(RUNS_DIR, time_str)
+    Path.mkdir(run_path, exist_ok=True)
+
+    preprocess_run_dir = Path(run_path, PREPROCESSING_OUT)
+    error_log_path = Path(run_path, ERROR_LOGS)
+
+    with open(error_log_path, 'w') as f:
+        f.write(f"Preprocessing error log for run {time_str} \n")
+
+    if not test:
+        combinations = get_data_aug_params_combinations(NUM_TRANSFORMATION_VALUES, NUM_REPLACEMENT_VALUES, OUT_OF_STYLE_PROB_VALUES)
+    else:
+        combinations = get_data_aug_params_combinations(TEST_TRANSFORMATION_VALUES, TEST_REPLACEMENT_VALUES, TEST_OUT_OF_STYLE_PROB_VALUES)
+
+    error_count = 0
+    for data_aug_params in tqdm(combinations, desc="Processing pipeline"):
+        try:
+            # preprocess the dataset
+            pre.preprocess(preprocess_run_dir, data_aug_params)
+            assert len(get_preprocessed_datasets(preprocess_run_dir)) == 1, "More than one preprocessed dataset found."
+        
+            # run dataToCluster.sh to copy the preprocessed dataset to hpc
+            preprocessed_dataset = get_preprocessed_datasets(preprocess_run_dir)[0]
+            result = subprocess.run([DATA_TO_CLUSTER_SCRIPT, preprocessed_dataset, time_str], capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"Error running dataToCluster.sh; error: {result.stderr}")
+
+        except Exception as e:
+            print("An error occured while preprocessing the dataset.")
+            with open(error_log_path, 'a') as f:
+                f.write(f"Error preprocessing with data aug params: {data_aug_params}. Stack trace: {e} \n")
+                error_count += 1
+
+        finally:
+            # clear the preprocess_run_dir
+            clear_dir(preprocess_run_dir)
+
+    
+    print(f"Preprocessed {len(combinations) - error_count} out of {len(combinations)} combinations. Errors written on {error_log_path}. Check cluster for processed datasets.")
+
+def evaluation_pipeline():
+    pass
 
 def get_data_aug_params_combinations(num_transformation_values, num_replacement_values, out_of_style_prob_values):
     combinations = []
@@ -44,18 +82,21 @@ def get_data_aug_params_combinations(num_transformation_values, num_replacement_
                 combinations.append(data_aug_params)
     return combinations
 
-def batch_preprocess_datasets():
-    # get data aug params combinations
-    # for each combination, do a preprocessing run. copy the output to the cluster
-    combinations = get_data_aug_params_combinations(NUM_TRANSFORMATION_VALUES, NUM_REPLACEMENT_VALUES, OUT_OF_STYLE_PROB_VALUES)
+def is_preprocessed_dataset_dir(dir: str):
+    keyword = dir.split('_')[0]
+    return keyword == PREPROCESSED_KEYWORD
 
-    if TEST:
-        combinations = combinations[0:2]
+def clear_dir(dir):
+    for filename in os.listdir(dir):
+        file_path = os.path.join(dir, filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
 
-    for data_aug_params in tqdm(combinations, desc="Batch preprocessing datasets"):
-        print(f"Current param combination: {data_aug_params}")
-        pre.preprocess(PREPROCESSING_OUT_DIR, data_aug_params)
+def get_preprocessed_datasets(preprocess_run_dir):
+    return [Path(preprocess_run_dir, pre_dir) for pre_dir in os.listdir(preprocess_run_dir) if is_preprocessed_dataset_dir(pre_dir)]
 
 
 if __name__ == "__main__":
-    batch_preprocess_datasets()
+    pre_processing_pipeline()
