@@ -3,6 +3,8 @@
 __pycache__
 
 venv
+training-venv
+evaluation-venv
 
 learning
 preprocessing
