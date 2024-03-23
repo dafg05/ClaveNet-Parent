@@ -6,6 +6,9 @@ venv
 training-venv
 evaluation-venv
 
+wandb
+train_runs/*
+
 learning
 preprocessing
 runs/*
