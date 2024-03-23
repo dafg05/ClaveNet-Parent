@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import traceback
 from pathlib import Path
 from datetime import datetime
 from tqdm import tqdm
@@ -89,6 +90,7 @@ def train_pipeline(preprocessed_datasets_paths, out_models_dir):
 
     error_count = 0
     for ppd_path in tqdm(preprocessed_datasets_paths, desc="Training pipeline"):
+        pd_path = None
         try:
             # process the preprocessed dataset
             pd_path = process.processing(ppd_path, TRAINING_RUNS_DIR)
@@ -98,12 +100,13 @@ def train_pipeline(preprocessed_datasets_paths, out_models_dir):
         except Exception as e:
             print("An error occured while training the model.")
             with open(error_log_path, 'a') as f:
-                f.write(f"Error training with preprocessed dataset: {ppd_path}. Stack trace: {e} \n")
+                f.write(f"Error training with preprocessed dataset: {ppd_path}. Stack trace: {traceback.format_exc()} \n")
                 error_count += 1
 
         finally:
             # delete the processed dataset
-            shutil.rmtree(pd_path)
+            if pd_path is not None:
+                shutil.rmtree(pd_path)
     
 
 def evaluation_pipeline():
