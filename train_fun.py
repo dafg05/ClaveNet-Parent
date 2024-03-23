@@ -15,15 +15,15 @@ HYPERPARAMS_SETTING = 'solar-shadow'
 LOG_WANDB = True
 IS_SMOL = True
 
-def train_pipeline(preprocessed_datasets_paths, out_models_dir):
+def train_pipeline(preprocessed_datasets_paths):
     # Process the preprocessed datasets on the cluster, and then train the models.
 
     # name each run with a timestamp
     time_str = str(int(datetime.now().timestamp()))
-    run_path = Path(TRAINING_RUNS_DIR, time_str)
-    Path.mkdir(run_path, exist_ok=True)
+    run_dir = Path(TRAINING_RUNS_DIR, time_str)
+    Path.mkdir(run_dir, exist_ok=True)
 
-    error_log_path = Path(run_path, TRAINING_ERROR_LOGS)
+    error_log_path = Path(run_dir, TRAINING_ERROR_LOGS)
     with open(error_log_path, 'w') as f:
         f.write(f"Training error log for run {time_str} \n")
 
@@ -34,7 +34,7 @@ def train_pipeline(preprocessed_datasets_paths, out_models_dir):
             # process the preprocessed dataset
             pd_path = process.processing(ppd_path, TRAINING_RUNS_DIR)
             # train the model
-            model_path = training.train(HYPERPARAMS_SETTING, pd_path, out_models_dir, LOG_WANDB, IS_SMOL)
+            model_path = training.train(HYPERPARAMS_SETTING, pd_path, run_dir, LOG_WANDB, IS_SMOL)
 
         except Exception as e:
             print("An error occured while training the model.")
@@ -49,4 +49,4 @@ def train_pipeline(preprocessed_datasets_paths, out_models_dir):
 
 if __name__ == '__main__':
     preprocessed_datasets = get_preprocessed_datasets(Path('../preprocessed_datasets', '1711057004'))
-    train_pipeline(preprocessed_datasets, TRAINING_RUNS_DIR)
+    train_pipeline(preprocessed_datasets)
