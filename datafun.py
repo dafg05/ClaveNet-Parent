@@ -10,13 +10,13 @@ from preprocessing import preprocessing as pre
 from learning.training import process, training
 
 DATA_TO_CLUSTER_SCRIPT = './dataToCluster.sh'
-PREPROCESSING_RUNS_DIR = 'preprocessing_runs'
-PREPROCESSING_OUT = 'pre_out'
+PREPROCESSING_RUNS_DIR = Path('preprocessing_runs')
+PREPROCESSING_OUT = Path('pre_out')
 TRAINING_ERROR_LOGS = 'preprocessing_errors.log'
 PREPROCESSED_KEYWORD = 'PreProcessed'
 
-TRAINING_RUNS_DIR = 'train_runs'
-TRAINING_OUT = 'train_out'
+TRAINING_RUNS_DIR = Path('train_runs')
+TRAINING_OUT = Path('train_out')
 TRAINING_ERROR_LOGS = 'train_errors.log'
 HYPERPARAMS_SETTING = 'solar-shadow'
 LOG_WANDB = True
