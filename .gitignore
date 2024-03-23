@@ -8,7 +8,7 @@ evaluation-venv
 
 wandb
 train_runs/*
+preprocessing_runs/*
 
 learning
 preprocessing
-runs/*
