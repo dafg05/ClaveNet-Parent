@@ -6,7 +6,7 @@ from datetime import datetime
 from tqdm import tqdm
 
 from preprocessing import preprocessing as pre
-import learning.training as training
+from learning.training import process, training
 
 DATA_TO_CLUSTER_SCRIPT = './dataToCluster.sh'
 PREPROCESSING_RUNS_DIR = 'preprocessing_runs'
@@ -91,7 +91,7 @@ def train_pipeline(preprocessed_datasets_paths, out_models_dir):
     for ppd_path in tqdm(preprocessed_datasets_paths, desc="Training pipeline"):
         try:
             # process the preprocessed dataset
-            pd_path = training.process(ppd_path, TRAINING_RUNS_DIR)
+            pd_path = process.processing(ppd_path, TRAINING_RUNS_DIR)
             # train the model
             model_path = training.train(HYPERPARAMS_SETTING, pd_path, out_models_dir, LOG_WANDB, IS_SMOL)
 
@@ -151,5 +151,5 @@ if __name__ == "__main__":
     if sys.argv[1] == 'preprocess':
         pre_processing_pipeline()
     elif sys.argv[1] == 'train':
-        preprocessed_datasets = get_preprocessed_datasets(Path('../preprocessed_datasets'))
+        preprocessed_datasets = get_preprocessed_datasets(Path('../preprocessed_datasets', '1711057004'))
         train_pipeline(preprocessed_datasets, TRAINING_RUNS_DIR)
