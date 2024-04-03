@@ -5,6 +5,7 @@ __pycache__
 venv
 training-venv
 evaluation-venv
+preproc-venv
 
 wandb
 train_runs/*
