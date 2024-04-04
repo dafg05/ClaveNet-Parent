@@ -79,21 +79,26 @@ def trim_midi_files(midi_dir: Path, out_dir: Path, beats_per_bar: int=4):
     for midi_path in midi_paths:
         mido_file = mido.MidiFile(midi_path)
 
-        # get old track and trim it to 2 bars
+        # get old track
         track = mido_file.tracks[0]
-        trimmed_track = tools.trimMidiTrack(track, 0, 2, beats_per_bar, mido_file.ticks_per_beat)
 
-        # create new midi files with the split tracks
+        # extract first 2 bars
+        first_trim = tools.trimMidiTrack(track, 0, 2, beats_per_bar, mido_file.ticks_per_beat)
         new_midi_file = mido.MidiFile(ticks_per_beat=mido_file.ticks_per_beat)
-        new_midi_file.tracks.append(trimmed_track)
-        new_midi_file.save(Path(out_dir, f"{midi_path.stem}_trim.mid"))
+        new_midi_file.tracks.append(first_trim)
+        new_midi_file.save(Path(out_dir, f"{midi_path.stem}_trim1.mid"))
 
+        # extract second 2 bars
+        second_trim = tools.trimMidiTrack(track, 2, 4, beats_per_bar, mido_file.ticks_per_beat)
+        new_midi_file = mido.MidiFile(ticks_per_beat=mido_file.ticks_per_beat)
+        new_midi_file.tracks.append(second_trim)
+        new_midi_file.save(Path(out_dir, f"{midi_path.stem}_trim2.mid"))
     
     return len(list(out_dir.glob('*.mid')))
 
 if __name__ == "__main__":
-    extracted = extract_midi_from_toontrack_midi_pack(TOONTRACK_MIDI_PACK, TOONTRACK_MIDI_EXTRACTED_SELECTED_GENRES, all_genres=False)
-    print(f"Extracted {extracted} midi files.")
+    # extracted = extract_midi_from_toontrack_midi_pack(TOONTRACK_MIDI_PACK, TOONTRACK_MIDI_EXTRACTED_SELECTED_GENRES, all_genres=False)
+    # print(f"Extracted {extracted} midi files.")
 
     trimmed = trim_midi_files(TOONTRACK_MIDI_EXTRACTED_SELECTED_GENRES, TRIMMED_TOON_TRACK_MIDI_SELECTED_GENRES)
     print(f"Trimmed {trimmed} midi files.")

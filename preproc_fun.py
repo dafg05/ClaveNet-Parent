@@ -13,7 +13,7 @@ PREPROCESSING_RUNS_DIR = Path('preprocessing_runs')
 PREPROCESSING_OUT = Path('pre_out')
 TRAINING_ERROR_LOGS = 'preprocessing_errors.log'
 
-NUM_TRANSFORMATION_VALUES = [1]
+NUM_TRANSFORMATION_VALUES = [1, 2, 3]
 NUM_REPLACEMENT_VALUES = [1, 2, 4]
 OUT_OF_STYLE_PROB_VALUES = [0.0, 0.5, 1.0]
 
@@ -86,5 +86,5 @@ def get_data_aug_params_combinations(num_transformation_values, num_replacement_
 
 if __name__ == "__main__":
 
-    pre_processing_pipeline()
+    pre_processing_pipeline(test=False)
         
