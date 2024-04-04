@@ -10,18 +10,17 @@ from preprocessing import preprocessing as pre
 
 DATA_TO_CLUSTER_SCRIPT = './dataToCluster.sh'
 PREPROCESSING_RUNS_DIR = Path('preprocessing_runs')
-PREPROCESSING_OUT = Path('pre_out')
 TRAINING_ERROR_LOGS = 'preprocessing_errors.log'
 
 NUM_TRANSFORMATION_VALUES = [1, 2, 3]
 NUM_REPLACEMENT_VALUES = [1, 2, 4]
 OUT_OF_STYLE_PROB_VALUES = [0.0, 0.5, 1.0]
 
-TEST_TRANSFORMATION_VALUES = [1]
+TEST_TRANSFORMATION_VALUES = [0]
 TEST_REPLACEMENT_VALUES = [1,2]
 TEST_OUT_OF_STYLE_PROB_VALUES = [0.5]
 
-def pre_processing_pipeline(test=True):
+def pre_processing_pipeline(test=True, sendToCluster=True):
     # Preprocess dataset with different data augmentation parameters.
     # NOTE: Unfortunately, this pipeline can only be run on the local machine.
 
@@ -29,8 +28,6 @@ def pre_processing_pipeline(test=True):
     time_str = str(int(datetime.now().timestamp()))
     run_path = Path(PREPROCESSING_RUNS_DIR, time_str)
     Path.mkdir(run_path, exist_ok=True)
-
-    preprocess_out_dir = Path(run_path, PREPROCESSING_OUT)
 
     error_log_path = Path(run_path, TRAINING_ERROR_LOGS)
     with open(error_log_path, 'w') as f:
@@ -45,14 +42,16 @@ def pre_processing_pipeline(test=True):
     for data_aug_params in tqdm(combinations, desc="Processing pipeline"):
         try:
             # preprocess the dataset
-            pre.preprocess(preprocess_out_dir, data_aug_params)
-            assert len(get_preprocessed_datasets(preprocess_out_dir)) == 1, "More than one preprocessed dataset found."
+            pre.preprocess(run_path, data_aug_params)
         
-            # run dataToCluster.sh to copy the preprocessed dataset to hpc
-            preprocessed_dataset = get_preprocessed_datasets(preprocess_out_dir)[0]
-            result = subprocess.run([DATA_TO_CLUSTER_SCRIPT, preprocessed_dataset, time_str], capture_output=True, text=True)
-            if result.returncode != 0:
-                raise Exception(f"Error running dataToCluster.sh; error: {result.stderr}")
+            if sendToCluster:
+                assert len(get_preprocessed_datasets(run_path)) == 1, "More than one preprocessed dataset found."
+                # run dataToCluster.sh to copy the preprocessed dataset to hpc
+                preprocessed_dataset = get_preprocessed_datasets(run_path)[0]
+                result = subprocess.run([DATA_TO_CLUSTER_SCRIPT, preprocessed_dataset, time_str], capture_output=True, text=True)
+                if result.returncode != 0:
+                    raise Exception(f"Error running dataToCluster.sh; error: {result.stderr}")
+
 
         except Exception as e:
             print("An error occured while preprocessing the dataset.")
@@ -61,11 +60,14 @@ def pre_processing_pipeline(test=True):
                 error_count += 1
 
         finally:
-            # clear the preprocess_run_dir
-            clear_dir(preprocess_out_dir)
+            if sendToCluster:
+                # clear the preprocess_run_dir
+                clear_dir(run_path)
 
-    
-    print(f"Preprocessed {len(combinations) - error_count} out of {len(combinations)} combinations. Errors written on {error_log_path}. Check cluster for processed datasets.")
+    if sendToCluster:
+        print(f"Preprocessed {len(combinations) - error_count} out of {len(combinations)} combinations. Errors written on {error_log_path}. Check cluster for processed datasets.")
+    else:
+        print(f"Preprocessed {len(combinations) - error_count} out of {len(combinations)} combinations. Errors written on {error_log_path}. Check {run_path} for processed datasets.")
 
 
 def get_data_aug_params_combinations(num_transformation_values, num_replacement_values, out_of_style_prob_values):
@@ -85,6 +87,5 @@ def get_data_aug_params_combinations(num_transformation_values, num_replacement_
 
 
 if __name__ == "__main__":
-
-    pre_processing_pipeline(test=False)
+    pre_processing_pipeline(test=True, sendToCluster=False)
         
