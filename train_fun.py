@@ -13,7 +13,7 @@ TRAINING_OUT = Path('train_out')
 TRAINING_ERROR_LOGS = 'train_errors.log'
 HYPERPARAMS_SETTING = 'solar-shadow'
 LOG_WANDB = True
-IS_SMOL = True
+IS_SMOL = False
 
 def train_pipeline(preprocessed_datasets_paths):
     # Process the preprocessed datasets on the cluster, and then train the models.

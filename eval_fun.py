@@ -6,7 +6,7 @@ from tqdm import tqdm
 from learning.evaluation import evaluation as eval
 
 EVALUATION_RUNS_DIR = Path('eval_runs')
-VALIDATION_DATASET = Path('AfroCuban_Validation_PreProcessed_On_03_04_2024_at_01_04_hrs')
+VALIDATION_DATASET = Path('AfroCuban_Validation_PreProcessed_On_03_04_2024_at_21_31_hrs')
 EVALUATION_ERROR_LOGS = 'eval_errors.log'
 
 def eval_pipeline(model_paths):
@@ -17,13 +17,13 @@ def eval_pipeline(model_paths):
 
     error_log_path = run_dir / EVALUATION_ERROR_LOGS
     with open(error_log_path, 'w') as f:
-        f.write(f"Training error log for run {time_str} \n")
+        f.write(f"Eval error log for run {time_str} \n")
 
     error_count = 0
     for model_path in tqdm(model_paths, desc="Evaluation pipeline"):
         try:
             # evaluate the model
-            evaluation_path = eval.evaluate(model_path, VALIDATION_DATASET, run_dir)
+            evaluation_path = eval.evaluateModel(run_dir, model_path, VALIDATION_DATASET)
         except Exception as e:
             print("An error occured while evaluating the model.")
             with open(error_log_path, 'a') as f:
@@ -32,4 +32,8 @@ def eval_pipeline(model_paths):
 
 
 def get_model_paths(run_dir):
-    return [model_path for model_path in run_dir.iterdir() if model_path.endswith('.pth')]
+    return [model_path for model_path in run_dir.iterdir() if model_path.suffix == '.pth']
+
+if __name__ == "__main__":
+    run_dir = Path('train_runs', '1711248631')
+    model_paths = get_model_paths(run_dir)
