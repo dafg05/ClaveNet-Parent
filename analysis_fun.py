@@ -7,9 +7,8 @@ from learning.evaluation import analysis, evaluation, evalDatasets
 
 from grooveEvaluator import plotting
 
-
 EVAL_RUNS_DIR = Path('eval_runs')
-MODELS_DIR = Path('train_runs', 'compiled')
+MODELS_DIR = Path('models')
 BASELINE_PATH = EVAL_RUNS_DIR / '1712465810' / 'full_solar-shadow_1712445292_evaluation_1712469392'
 VALIDATION_SET_PATH = Path('AfroCuban_Validation_PreProcessed_On_03_04_2024_at_21_31_hrs')
 REPORT_PATH = Path('wandb_training_runs_report.csv')
@@ -37,21 +36,17 @@ def analysis_on_all_evals():
 
     complete_data = analysis.analysis(eval_paths, REPORT_PATH, N, baseline_path=BASELINE_PATH)
     complete_analysis_df = pd.DataFrame(complete_data)
-    # analysis_df.to_csv(OUT_DIR / "analysis.csv")
-    # print(f"Analysis data written to csv file at {OUT_DIR / 'analysis.csv'}")
 
     reduced_data = analysis.analysis(eval_paths, REPORT_PATH, N, reduced_features=True,baseline_path=BASELINE_PATH)
     reduced_analysis_df = pd.DataFrame(reduced_data)
-    # reduced_analysis_df.to_csv(OUT_DIR / "reduced_analysis.csv")
-    # print(f"Reduced analysis data written to csv file at {OUT_DIR / 'reduced_analysis.csv'}")
-
-    # return a list of the evaluation paths for the complete data and another for the reduced data
 
     return complete_analysis_df, reduced_analysis_df
 
 
 def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, validation_set_path: Path, num_audio_samples: int, features):
     # Select random audio samples for audio eval
+    random.seed(42)
+
     full_valid_set = evalDatasets.ValidationHvoDataset(validation_set_path)
     indices = random.sample(list(range(len(full_valid_set))), num_audio_samples)
     indices.sort()
@@ -101,5 +96,11 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, validation_s
         
 if __name__ == "__main__":
     complete_df, reduced_df = analysis_on_all_evals()
+    complete_df.to_csv(OUT_DIR / "complete_analysis.csv")
+    print(f"Complete analysis data written to csv file at {OUT_DIR / 'complete.csv'}")
+
+    reduced_df.to_csv(OUT_DIR / "reduced_analysis.csv")
+    print(f"Reduced analysis data written to csv file at {OUT_DIR / 'reduced.csv'}")
+
     collect_analysis_data(complete_df, COMPLETE_ANALYSIS_DATA, VALIDATION_SET_PATH, 10, analysis.EVAL_FEATURES)
-    collect_analysis_data(reduced_df, REDUCED_ANALYSIS_DATA, analysis.REDUCED_EVAL_FEATURES)
+    collect_analysis_data(reduced_df, REDUCED_ANALYSIS_DATA, VALIDATION_SET_PATH, 10, analysis.REDUCED_EVAL_FEATURES)

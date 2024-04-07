@@ -18,3 +18,11 @@ old_toontrack_trimmed_selected-genres
 toontrack_extracted_selected-genres
 toontrack_trimmed_selected-genres
 toontrack_pack
+
+models/*
+eval_runs/*
+logs/*
+
+analysis_out/*
+
+AfroCuban_Validation_PreProcessed_On_03_04_2024_at_21_31_hrs
