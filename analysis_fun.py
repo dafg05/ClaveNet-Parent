@@ -7,13 +7,12 @@ from learning.evaluation import analysis, evaluation, evalDatasets
 
 from grooveEvaluator import plotting
 
-EVAL_RUNS_DIR = Path('eval_runs')
-MODELS_DIR = Path('models')
-BASELINE_PATH = EVAL_RUNS_DIR / '1712465810' / 'full_solar-shadow_1712445292_evaluation_1712469392'
-VALIDATION_SET_PATH = Path('AfroCuban_Validation_PreProcessed_On_03_04_2024_at_21_31_hrs')
+EVAL_RUNS_DIR = Path('newest_eval_runs')
+MODELS_DIR = Path('newest_models')
+EVALUATION_SET_PATH = Path('AfroCuban_Validation_PreProcessed_On_03_04_2024_at_21_31_hrs')
 REPORT_PATH = Path('wandb_training_runs_report.csv')
-OUT_DIR = Path('analysis_out')
-N = 5
+OUT_DIR = Path('newest_analysis_out')
+N = 23
 
 COMPLETE_ANALYSIS_DATA = OUT_DIR / 'complete_analysis'
 REDUCED_ANALYSIS_DATA = OUT_DIR / 'reduced_analysis'
@@ -34,20 +33,20 @@ def analysis_on_all_evals():
             eval_paths.append(eval_path)
 
 
-    complete_data = analysis.analysis(eval_paths, REPORT_PATH, N, baseline_path=BASELINE_PATH)
+    complete_data = analysis.analysis(eval_paths, REPORT_PATH)
     complete_analysis_df = pd.DataFrame(complete_data)
 
-    reduced_data = analysis.analysis(eval_paths, REPORT_PATH, N, reduced_features=True,baseline_path=BASELINE_PATH)
+    reduced_data = analysis.analysis(eval_paths, REPORT_PATH, reduced_features=True)
     reduced_analysis_df = pd.DataFrame(reduced_data)
 
     return complete_analysis_df, reduced_analysis_df
 
 
-def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, validation_set_path: Path, num_audio_samples: int, features):
+def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, evaluation_set_path: Path, num_audio_samples: int, features):
     # Select random audio samples for audio eval
     random.seed(42)
 
-    full_valid_set = evalDatasets.ValidationHvoDataset(validation_set_path)
+    full_valid_set = evalDatasets.ValidationHvoDataset(evaluation_set_path)
     indices = random.sample(list(range(len(full_valid_set))), num_audio_samples)
     indices.sort()
     subset = [full_valid_set[ix] for ix in indices]
@@ -55,6 +54,10 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, validation_s
         # write the master ids of the selected hvo_sequences to a file
         for ix, hvo_sequence in zip(indices, subset):
             samples_file.write(f"Ix: {ix}; Master Id: {hvo_sequence.master_id}\n")
+
+    baseline_row = analysis_df[analysis_df["num_transformations"] == 0].iloc[0]
+    baseline_eval_path = Path(baseline_row["eval_path"])
+    baseline_pkl_path = baseline_eval_path / PICKLED_RESULTS
 
     # for every model present in the analysis, collect data on it.
     for _, row in analysis_df.iterrows():
@@ -84,8 +87,13 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, validation_s
             results_dict = pickle.load(pkl_file)
             results_dict = {feat: results_dict[feat] for feat in features}
 
-            dist_figname = f"Distance metrics for model {model_start_time} : {model_desc}"
-            plotting.plot_distance_metrics(results_dict, results_dir, figname=dist_figname)
+            # plot with respect to the baseline
+            with open(baseline_pkl_path, 'rb') as baseline_pkl_file:
+                baseline_results_dict = pickle.load(baseline_pkl_file)
+                baseline_results_dict = {feat: baseline_results_dict[feat] for feat in features}
+
+                comparison_figname = f"Comparison to Validation Set ({model_desc.replace('_', ', ')})"
+                plotting.plot_multiple_distance_metrics(results_dict, baseline_results_dict, f"Model {model_start_time}", "Baseline",results_dir, figname=comparison_figname, non_negative_klds=True)
 
         # do audio eval
         model_path = MODELS_DIR / f'{row["model_name"]}.pth'
@@ -102,5 +110,5 @@ if __name__ == "__main__":
     reduced_df.to_csv(OUT_DIR / "reduced_analysis.csv")
     print(f"Reduced analysis data written to csv file at {OUT_DIR / 'reduced.csv'}")
 
-    collect_analysis_data(complete_df, COMPLETE_ANALYSIS_DATA, VALIDATION_SET_PATH, 10, analysis.EVAL_FEATURES)
-    collect_analysis_data(reduced_df, REDUCED_ANALYSIS_DATA, VALIDATION_SET_PATH, 10, analysis.REDUCED_EVAL_FEATURES)
+    collect_analysis_data(complete_df, COMPLETE_ANALYSIS_DATA, EVALUATION_SET_PATH, 10, analysis.EVAL_FEATURES)
+    collect_analysis_data(reduced_df, REDUCED_ANALYSIS_DATA, EVALUATION_SET_PATH, 10, analysis.REDUCED_EVAL_FEATURES)

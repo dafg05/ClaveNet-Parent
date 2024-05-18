@@ -23,7 +23,7 @@ def eval_pipeline(model_paths):
     for model_path in tqdm(model_paths, desc="Evaluation pipeline"):
         try:
             # evaluate the model
-            evaluation_path = eval.evaluateModel(run_dir, model_path, VALIDATION_DATASET)
+            evaluation_path = eval.evaluateModel(run_dir, model_path, VALIDATION_DATASET, simple=True)
         except Exception as e:
             print("An error occured while evaluating the model.")
             with open(error_log_path, 'a') as f:
