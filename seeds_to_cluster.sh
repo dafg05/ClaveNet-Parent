@@ -1,1 +1,0 @@
-scp -r preprocessing/seedExamples hpc:~/drum-gen-storage/preprocessing

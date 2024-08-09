@@ -1,1 +1,0 @@
-scp -r learning/hypers dfloresgarcia24@hpc.amherst.edu:/home/dfloresgarcia24/learning
