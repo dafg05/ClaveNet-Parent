@@ -3,6 +3,8 @@ import random
 import pandas as pd
 import pickle
 
+import matplotlib.pyplot as plt
+
 from learning.evaluation import analysis, evaluation, evalDatasets
 
 from grooveEvaluator import plotting
@@ -71,7 +73,7 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, evaluation_s
         if num_transformations == 0:
             model_desc = "baseline"
         else:
-            model_desc= f"t={num_transformations}_r={num_replacements}_o={out_of_style_prob}"
+            model_desc= f"n_t={num_transformations}-n_r={num_replacements}-p_s\'={out_of_style_prob}"
 
         results_dir = out_dir / f"{model_start_time}_{model_desc}"
         results_dir.mkdir(parents=True, exist_ok=True)
@@ -92,8 +94,17 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, evaluation_s
                 baseline_results_dict = pickle.load(baseline_pkl_file)
                 baseline_results_dict = {feat: baseline_results_dict[feat] for feat in features}
 
-                comparison_figname = f"Comparison to Validation Set ({model_desc.replace('_', ', ')})"
-                plotting.plot_multiple_distance_metrics(results_dict, baseline_results_dict, f"Model {model_start_time}", "Baseline",results_dir, figname=comparison_figname, non_negative_klds=True)
+                comparison_figname = model_desc.replace("-", ",")
+                
+                setname = f"Model {model_start_time}"
+                if setname == "Model 1712669090":
+                    setname = "morning-cosmos"
+                elif setname == "Model 1712654242":
+                    setname = "upbeat-resonance"
+                else:
+                    continue
+
+                plot_multiple_distance_metrics(results_dict, baseline_results_dict, setname, "Baseline",results_dir, y_bottom_limit=0.85 ,figname=comparison_figname, non_negative_klds=True)
 
         # do audio eval
         model_path = MODELS_DIR / f'{row["model_name"]}.pth'
@@ -102,6 +113,58 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, evaluation_s
         evaluation.audioEval(audio_dir, model_path, full_valid_set, indices)
 
         
+def plot_multiple_distance_metrics(results_1, results_2, setname_1, setname_2, out_dir, figname="Distance Metrics", x_right_limit=-1, y_bottom_limit=-1,colors=None, non_negative_klds=False):
+    if not colors:
+        colors = plt.get_cmap('tab20').colors
+
+    plt.figure(figsize=(7, 3.5))
+    max_kl_divergence = float('-inf')
+    min_overlapping_area = float('inf')
+
+    # Plot with specified markers
+    for i, (feature, result) in enumerate(results_2.items()):
+        if non_negative_klds:
+            result.kl_divergence = max(0, result.kl_divergence)
+        plt.scatter(result.kl_divergence, result.overlapping_area, color=colors[i], marker='o', s=100,label=feature)  # Circles for set 2
+        max_kl_divergence = max(max_kl_divergence, result.kl_divergence)
+        min_overlapping_area = min(min_overlapping_area, result.overlapping_area)
+    for i, (feature, result) in enumerate(results_1.items()):
+        if non_negative_klds:
+            result.kl_divergence = max(0, result.kl_divergence)
+        plt.scatter(result.kl_divergence, result.overlapping_area, color=colors[i], marker='v', s=100,label=feature)  # Triangles for set 1
+        max_kl_divergence = max(max_kl_divergence, result.kl_divergence)
+        min_overlapping_area = min(min_overlapping_area, result.overlapping_area)
+
+    # Adjusting limits
+    if x_right_limit < 0:
+        x_right_limit = max_kl_divergence + 0.1 * max_kl_divergence
+    
+    if y_bottom_limit < 0:
+        y_bottom_limit = max(0, min_overlapping_area - 0.1 * min_overlapping_area)
+
+    plt.xlim(left=0, right=x_right_limit)
+    plt.ylim(bottom=y_bottom_limit, top=1.0)
+
+    # # Legend for colors (features)
+    # if legend:
+    #     legend_elements = [plt.Line2D([0], [0], color=color, marker='s', linestyle='', markersize=10) for color in colors]
+    #     plt.legend(legend_elements, [feature for feature in results_1.keys()], title="Features", title_fontproperties={'weight':'bold'},bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    plt.xlabel('KL-Divergence', fontweight='bold')
+    plt.ylabel('Overlapping Area', fontweight='bold')
+    plt.title(figname, fontweight='bold', fontsize = 16)
+
+   # Annotations for set markers
+    plt.text(0.5, -0.4, f'{setname_1} ▼ | {setname_2} ●', ha='center', va='center', 
+             transform=plt.gca().transAxes,
+             bbox=dict(facecolor='white', alpha=0.5, edgecolor='black', boxstyle='round,pad=0.5'), fontsize=14)
+    
+    plt.tight_layout(rect=[0, 0.05, 0.75, 1])
+
+    plt.savefig(out_dir / f"{figname}_plot.png", dpi=300)
+    plt.close()
+
+
 if __name__ == "__main__":
     complete_df, reduced_df = analysis_on_all_evals()
     complete_df.to_csv(OUT_DIR / "complete_analysis.csv")
