@@ -7,14 +7,11 @@ import matplotlib.pyplot as plt
 
 from learning.evaluation import analysis, evaluation, evalDatasets
 
-from grooveEvaluator import plotting
-
-EVAL_RUNS_DIR = Path('newest_eval_runs')
-MODELS_DIR = Path('newest_models')
+EVAL_RUNS_DIR = Path('eval_runs')
+MODELS_DIR = Path('models')
 EVALUATION_SET_PATH = Path('AfroCuban_Validation_PreProcessed_On_03_04_2024_at_21_31_hrs')
 REPORT_PATH = Path('wandb_training_runs_report.csv')
-OUT_DIR = Path('newest_analysis_out')
-N = 23
+OUT_DIR = Path('analysis_out')
 
 COMPLETE_ANALYSIS_DATA = OUT_DIR / 'complete_analysis'
 REDUCED_ANALYSIS_DATA = OUT_DIR / 'reduced_analysis'
@@ -26,14 +23,10 @@ AUDIO_EVAL_SAMPLES = 'audio_eval'
 
 def analysis_on_all_evals():
     eval_paths = []
-    for run_dir in EVAL_RUNS_DIR.iterdir():
-        if not run_dir.is_dir():
+    for eval_path in EVAL_RUNS_DIR.iterdir():
+        if not eval_path.is_dir():
             continue
-        for eval_path in run_dir.iterdir():
-            if not eval_path.is_dir():
-                continue
-            eval_paths.append(eval_path)
-
+        eval_paths.append(eval_path)
 
     complete_data = analysis.analysis(eval_paths, REPORT_PATH)
     complete_analysis_df = pd.DataFrame(complete_data)
@@ -97,12 +90,6 @@ def collect_analysis_data(analysis_df: pd.DataFrame, out_dir: Path, evaluation_s
                 comparison_figname = model_desc.replace("-", ",")
                 
                 setname = f"Model {model_start_time}"
-                if setname == "Model 1712669090":
-                    setname = "morning-cosmos"
-                elif setname == "Model 1712654242":
-                    setname = "upbeat-resonance"
-                else:
-                    continue
 
                 plot_multiple_distance_metrics(results_dict, baseline_results_dict, setname, "Baseline",results_dir, y_bottom_limit=0.85 ,figname=comparison_figname, non_negative_klds=True)
 
@@ -117,7 +104,7 @@ def plot_multiple_distance_metrics(results_1, results_2, setname_1, setname_2, o
     if not colors:
         colors = plt.get_cmap('tab20').colors
 
-    plt.figure(figsize=(7, 3.5))
+    plt.figure(figsize=(8, 8))
     max_kl_divergence = float('-inf')
     min_overlapping_area = float('inf')
 
@@ -145,10 +132,9 @@ def plot_multiple_distance_metrics(results_1, results_2, setname_1, setname_2, o
     plt.xlim(left=0, right=x_right_limit)
     plt.ylim(bottom=y_bottom_limit, top=1.0)
 
-    # # Legend for colors (features)
-    # if legend:
-    #     legend_elements = [plt.Line2D([0], [0], color=color, marker='s', linestyle='', markersize=10) for color in colors]
-    #     plt.legend(legend_elements, [feature for feature in results_1.keys()], title="Features", title_fontproperties={'weight':'bold'},bbox_to_anchor=(1.05, 1), loc='upper left')
+    # Legend for colors (features)
+    legend_elements = [plt.Line2D([0], [0], color=color, marker='s', linestyle='', markersize=10) for color in colors]
+    plt.legend(legend_elements, [feature for feature in results_1.keys()], title="Features", title_fontproperties={'weight':'bold'},bbox_to_anchor=(1.05, 1), loc='upper left')
 
     plt.xlabel('KL-Divergence', fontweight='bold')
     plt.ylabel('Overlapping Area', fontweight='bold')
@@ -159,7 +145,7 @@ def plot_multiple_distance_metrics(results_1, results_2, setname_1, setname_2, o
              transform=plt.gca().transAxes,
              bbox=dict(facecolor='white', alpha=0.5, edgecolor='black', boxstyle='round,pad=0.5'), fontsize=14)
     
-    plt.tight_layout(rect=[0, 0.05, 0.75, 1])
+    plt.tight_layout()
 
     plt.savefig(out_dir / f"{figname}_plot.png", dpi=300)
     plt.close()
