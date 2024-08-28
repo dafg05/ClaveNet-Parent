@@ -6,6 +6,9 @@ This repo houses subrepos housing a number of objects, functions, and scripts in
 
 Click [**here**](https://dafg05.github.io/ClaveNet-Samples/) to listen to some ClaveNet samples!
 
+
+![Data flow for trainining a ClaveNet model.](assets/PreProcessingScript.png)
+
 ## Data Pre-processing
 
 The preprocessing script used to convert the Groove MIDI Dataset into Afro-Cuban-influenced augmented datasets, comprised of HVO-Sequences.
@@ -13,7 +16,7 @@ The preprocessing script used to convert the Groove MIDI Dataset into Afro-Cuban
 
 ## MidiUtils
 
-A package containing the transformation function essential to the Drum Data Augmentation with Seed Patterns scheme, as well as other miscellanous MIDI editing tools.
+A module containing the transformation function essential to the Drum Data Augmentation with Seed Patterns scheme, as well as other miscellanous MIDI editing tools.
 [**[Link]**](https://github.com/dafg05/ClaveNet-MidiUtils) 
 
 ## Model Architecture
