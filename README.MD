@@ -7,29 +7,31 @@ This repo houses subrepos housing a number of objects, functions, and scripts in
 Click [**here**](https://dafg05.github.io/ClaveNet-Samples/) to listen to some ClaveNet samples!
 
 
+## Data flow
+
 ![Data flow for trainining a ClaveNet model.](assets/PreProcessingScript.png)
 
-## Data Pre-processing
+### Data Pre-processing
 
 The preprocessing script used to convert the Groove MIDI Dataset into Afro-Cuban-influenced augmented datasets, comprised of HVO-Sequences.
 [**[Link]**](https://github.com/dafg05/ClaveNet-Preprocessing)
 
-## MidiUtils
+### MidiUtils
 
 A module containing the transformation function essential to the Drum Data Augmentation with Seed Patterns scheme, as well as other miscellanous MIDI editing tools.
 [**[Link]**](https://github.com/dafg05/ClaveNet-MidiUtils) 
 
-## Model Architecture
+### Model Architecture
 
 The percussive generative model's architecture and loss function, based on the [Monotonic Groove Transformer](https://github.com/behzadhaki/MonotonicGrooveTransformer).
 [**[Link]**](https://github.com/dafg05/ClaveNet-Architecture)
 
-## Training
+### Training
 
 A script to train ClaveNet instances.
 [**[Link]**](https://github.com/dafg05/ClaveNet-Training)
 
-## Model Evaluation
+### Model Evaluation
 
 An assortment of scripts to perform a rhythmic-feature based evaluation scheme for ClaveNet models, and to rank them.
 [**[Link]**](https://github.com/dafg05/ClaveNet-Evaluation)
