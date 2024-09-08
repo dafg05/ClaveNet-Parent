@@ -9,7 +9,7 @@ You can listen to some ClaveNet samples [**here!**](https://dafg05.github.io/Cla
 
 ## Data flow
 
-![Data flow for trainining a ClaveNet model.](assets/Dataflow.png)
+![Data flow for trainining a ClaveNet model.](assets/DataflowNew.png)
 
 ### Data Preprocessing
 
